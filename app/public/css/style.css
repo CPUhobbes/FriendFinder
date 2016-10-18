@@ -1,0 +1,38 @@
+body{
+	color: #ffffff;
+}
+
+img{
+	padding: 5px;
+	border: 1px solid #cccccc;
+	margin-bottom: 10px;
+}
+
+
+.gallery{
+	background-color: #ffffff;
+	display: inline-block;
+	text-align: center;
+	padding: 10px;
+}
+
+.jumbotron{
+	background-color: #0073af;
+	position: relative;
+  	top:40px;
+  	padding-top: 20px; 
+}
+
+.topPadding{
+	margin-top: 5px;
+
+}
+.startButton{
+	text-align: center;
+	padding: 20px 10px;
+}
+.friendsLink{
+	padding-top:15px;
+	text-align: right;
+
+}
