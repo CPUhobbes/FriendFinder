@@ -1,47 +1,111 @@
-//get results
-function validate(){
-	var answers = $(".dropdown-menu li a");
-	answers.each(function(value, index){
-		console.log($(this).find('option:selected').context.innerHTML);
-	});
-	//console.log(answers);
+//Array of textbox questions
+var textboxBank=["Name", "Your Picture (ex. http://www.example.com/myImage.jpg)"];
 
+//Array of dropdown questions
+var questionBank=["Your mind is always buzzing with unexplored ideas and plans.",
+					"Generally speaking, you rely more on your experience than your imagination.",
+					"You find it easy to stay relaxed and focused even when there is some pressure.",
+					"You rarely do something just out of sheer curiosity.",
+					"People can rarely upset you.",
+					"It is often difficult for you to relate to other people's feelings.",
+					"In a discussion, truth should be more important than people's sensitivities.",
+					"You rarely get carried away by fantasies and ideas.",
+					"You think that everyone's views should be respected regardless of whether they are supported by facts or not.",
+					"You feel more energetic after spending time with a group of people."
+					];
 
+//Array of dropdown answers					
+var answerBank = [1,2,3,4,5];
 
+//Empty array for the answers with length of # of questions
+var friendAnswers = new Array(questionBank.length).fill('');
+
+//query API
+function queryApi(){
+
+	var newPerson = {
+		name: $('#box0').val().trim(),
+		img: $('#box1').val().trim(),
+		scores: friendAnswers
+	};	
+	$.ajax({
+  		type: "POST",
+  		url: "/api/friends",
+ 		data: newPerson
+	}).then(function(response){
+
+		console.log(response);
+	})
+
+	return false;
 }
 
+//Validate form
+function validate(){
+	var missingAns = [];
 
-//Create questions for form
+	//Check textboxes if missing data
+	//Add error class to textbox if missing answer
+	textboxBank.forEach(function(value, index){
+		if($("#box"+index).val() === ''){
+			$("#box"+index).parent(".form-group").addClass("has-error");
+			$("#box"+index).addClass("textError");
+			missingAns.push("#box"+index);
+
+		}
+	});
+
+	//Check for missing answers in dropdowns
+	//Replaces default class with danger class in buttons for every missing answer	
+	friendAnswers.forEach(function(value, index){
+		if(value===''){
+			missingAns.push("#answer"+index);
+			$("#answer"+index).parents('.input-group-btn').find('.dropdown-toggle').removeClass('btn-default');
+			$("#answer"+index).parents('.input-group-btn').find('.dropdown-toggle').addClass('btn-danger');
+		}
+	});
+
+	//Check if there were any missing answers and scroll to 1st error location
+	if(missingAns.length>0){
+		var errorLoc = $(missingAns[0]).parents('.questionGroup').offset().top-80; 
+		$('html, body').animate({
+    		scrollTop: errorLoc
+    	}, 500);
+	}
+	else{
+
+		queryApi();
+	}
+}
+
+//Dynamically create questions for form
 function createForm(){
 
-	//Array of questions
-	var questionBank=["Your mind is always buzzing with unexplored ideas and plans.",
-						"Generally speaking, you rely more on your experience than your imagination.",
-						"You find it easy to stay relaxed and focused even when there is some pressure.",
-						"You rarely do something just out of sheer curiosity.",
-						"People can rarely upset you.",
-						"It is often difficult for you to relate to other people's feelings.",
-						"In a discussion, truth should be more important than people's sensitivities.",
-						"You rarely get carried away by fantasies and ideas.",
-						"You think that everyone's views should be respected regardless of whether they are supported by facts or not.",
-						"You feel more energetic after spending time with a group of people."
-						];
-	//Array of answers					
-	var answerBank = [1,2,3,4,5];
+	$("#startQuest").append("<div class=\"row\"><div class=\"col-md-6\"><h2>About You</h2</div></div>"); //About you header
 
+	//Create name and image inputs
+	textboxBank.forEach(function(value, index){
+		var rowInput = $('<div>').addClass("row"); //Create Row
+		var colInput = $('<div>').addClass("col-md-8"); //Create Column
+		var groupInput = $('<div>').addClass("form-group questionGroup");//Create input div
+		var inputBox = $('<input>', {"type":"text", "class":"form-control", "placeholder":value, "aria-describedby":"basic-addon1", "id": "box"+index}); //Create textbox
+		$("#startQuest").append(rowInput.append(colInput.append(groupInput.append(inputBox))));
+		
+	 });
+	
 	//For every question in questionBank, create an element tag with the question #, question, and answer button
 	questionBank.forEach(function(value, index){
 
 		var row = $('<div>').addClass("row"); //Create Row
 		var col = $('<div>').addClass("col-md-6"); //Create Column
-		var group = $('<div>').addClass("input-group-btn");	//Create button div (container)
+		var group = $('<div>').addClass("input-group-btn questionGroup");	//Create button div (container)
 
 		var button = $('<button>', {"class":"btn btn-default dropdown-toggle", "data-toggle": "dropdown", "aria-haspopup": "true",// Create button
 			 "aria-expanded": "false"}).html("Choose an Option ");
 		var caret = $('<span>').addClass("caret"); //Create caret for button
 		button.append(caret);	//Add caret to button
 
-		var list = $('<ul>').addClass("dropdown-menu"); //Create dropdown menu
+		var list = $('<ul>').addClass("dropdown-menu").attr('id', "answer"+index); //Create dropdown menu
 			answerBank.forEach(function(value1, index){
 				var item = $('<li>').append("<a href=\"#\">"+value1+"</a>");
 				list.append(item);
@@ -59,20 +123,46 @@ function createForm(){
 	var row = $('<div>').addClass("row"); //Create Row
 	var col = $('<div>').addClass("col-md-12"); //Create Column
 	var para = $('<p>').addClass("submitButton");
-	var button = $('<button>', {"class":"btn btn-default center", "onClick":"validate()"}).html("Submit Survey!"); //Create button
+	var button = $('<button>', {"class":"btn btn-default center", "id":"submit"}).html("Submit Survey!"); //Create button
 	$("#startQuest").append(row.append(col.append(para.append(button))));
 }
 
-
-
 $(document).ready(function(){
+	//Dynamically create form
 	createForm();
+
+	//Get value of dropdown when clicked
 	$(".dropdown-menu li a").on("click", function(e){
-		var value =  parseInt($(this).find('option:selected').context.innerHTML);
+		var value = parseInt($(this).find('option:selected').context.innerHTML); //value of item
+		var id = parseInt($(this).parents('.dropdown-menu').attr('id').replace(/^\D+/g, '')); //id of dropdown (the question #)
+
+		//Add answers to array, other options include using regular dropdown or still use <ul> and add a class
+		//to the selected item to keep track of answer.  Decided to try it this way for fun.
+		friendAnswers[id] = value; 
+
+		if(typeof value === 'number'){//Check if valid number
+			//remove error class and replace with default
+			$(this).parents('.input-group-btn').find('.dropdown-toggle').removeClass('btn-danger');
+			$(this).parents('.input-group-btn').find('.dropdown-toggle').addClass('btn-default');
+		}
 		 $(this).parents('.input-group-btn').find('.dropdown-toggle').html(value+' <span class="caret"></span>');
-		  e.preventDefault();
+		  e.preventDefault(); //Prevents page from scrolling up
 	});
 
-})
+	//Go to survey when clicked
+	$("#surveyGo").on("click", function(){
+		window.location.href = "/survey";
+	});
 
+	//Validate form when submit is clicked
+	$('#submit').on('click', function () {
+		validate();
+	});
 
+	//Remove error css if clicked into textbox
+	$('.form-control').on('click', function () {
+		$(this).parent(".form-group").removeClass("has-error");
+		$(this).removeClass("textError");
+	});
+
+});
