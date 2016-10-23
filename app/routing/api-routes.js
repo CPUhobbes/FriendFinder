@@ -1,7 +1,9 @@
+var friendsDB = require("../data/friends.js")();
+
 module.exports = function(app) { 
 
-
-var people = [{"name":"James T. Kirk", "img":"/img/man1.jpg", "scores": ["5","5","3","1","2","4","1","3","4","2"]}];
+	var friendsList = new FriendsList();
+// var people = [{"name":"James T. Kirk", "img":"/img/man1.jpg", "scores": ["5","5","3","1","2","4","1","3","4","2"]}];
 
 // Routes
 // =============================================================
@@ -9,11 +11,12 @@ var people = [{"name":"James T. Kirk", "img":"/img/man1.jpg", "scores": ["5","5"
 // Basic route that sends the user first to the AJAX Page
 
 	app.get('/api/friends', function (req, res) {
+		var people = friendsList.getFriends();
 		res.json(people);
 	});
 	app.post('/api/friends', function (req, res) {
 		var newPerson = req.body;
-		people.push(newPerson);
+		friendsList.storeFriend(newPerson);
 		res.send(newPerson);
 	});
 
