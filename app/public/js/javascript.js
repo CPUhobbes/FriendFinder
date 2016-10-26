@@ -33,8 +33,14 @@ function queryApi(){
   		url: "/api/friends",
  		data: newPerson
 	}).then(function(response){
-
 		console.log(response);
+		$('#modalContent').empty();
+		$('#modalContent').css('text-align','center');
+		$('#modalContent').append($('<h1>').html(response.name));
+		$('#modalContent').append($('<img>').attr({src: response.img, width:"200", alt:response.name}));
+		$('#modalContent').append($('<h3>').html("Score: "+response.score));
+
+		$('#myModal').modal("show") //Show Modal
 	})
 
 	return false;
@@ -163,6 +169,11 @@ $(document).ready(function(){
 	$('.form-control').on('click', function () {
 		$(this).parent(".form-group").removeClass("has-error");
 		$(this).removeClass("textError");
+	});
+
+	//After clicking close (after seeing result) return to home
+	$("#finished").on("click", function(){
+		window.location.href = "/";
 	});
 
 });

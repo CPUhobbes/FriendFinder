@@ -8,7 +8,6 @@ img{
 	margin-bottom: 10px;
 }
 
-
 .gallery{
 	background-color: #ffffff;
 	padding: 10px;
@@ -38,7 +37,11 @@ img{
 	text-align: center;
 	margin-top: 15px;
 }
+
 .textError{
 	background-color: #ffd1d1;
+}
 
+.modalTextColor{
+	color: #000000;
 }
